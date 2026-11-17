@@ -26,9 +26,11 @@ jobs:
 
       - name: Execute Quantitative Analysis Pipeline
         run: |
+          echo "=== Repository Root File List ==="
+          ls -la
           python main.py
         env:
-          PYTHONPATH: ${{ github.workspace }}  # <-- 절대 경로로 모듈 검색 경로 지정
+          PYTHONPATH: ${{ github.workspace }}
 
       - name: Upload Analysis Logs / Results
         uses: actions/upload-artifact@v4
