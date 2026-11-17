@@ -4,21 +4,39 @@ import statsmodels.api as sm
 
 class MacroAnalyzer:
     def __init__(self, df: pd.DataFrame):
-        self.df = df
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = ['_'.join(str(c) for c in col).strip() for col in df.columns]
+        else:
+            df.columns = [str(c) for c in df.columns]
+        self.df = df.copy()
 
     def evaluate_real_yield_and_dxy(self):
         print("\n--- [Analysis 1] Macro Impact & Correlation Evaluation ---")
-        numeric_df = self.df.select_dtypes(include=[np.number])
-        if numeric_df.shape[1] >= 3:
-            sub_df = numeric_df.iloc[:, :3].copy()
-            sub_df.columns = ['Gold', 'Real_Yield_10Y', 'DXY']
-        else:
-            sub_df = numeric_df.copy()
-            while sub_df.shape[1] < 3:
-                sub_df[f'Col_{sub_df.shape[1]}'] = 0.0
-            sub_df.columns = ['Gold', 'Real_Yield_10Y', 'DXY'][:sub_df.shape[1]]
+        col_map = {}
+        for c in self.df.columns:
+            c_upper = c.upper()
+            if 'GOLD' in c_upper or 'GC=F' in c_upper:
+                col_map[c] = 'Gold'
+            elif 'REAL' in c_upper or 'DFII10' in c_upper:
+                col_map[c] = 'Real_Yield_10Y'
+            elif 'DXY' in c_upper or 'DX' in c_upper:
+                col_map[c] = 'DXY'
         
-        sub_df = sub_df.dropna()
+        sub_df = self.df.rename(columns=col_map)
+        required = ['Gold', 'Real_Yield_10Y', 'DXY']
+        
+        if not all(r in sub_df.columns for r in required):
+            numeric_cols = sub_df.select_dtypes(include=[np.number]).columns.tolist()
+            if len(numeric_cols) >= 3:
+                sub_df = sub_df[numeric_cols].copy()
+                sub_df.columns = required
+            else:
+                for r in required:
+                    if r not in sub_df.columns:
+                        sub_df[r] = 0.0
+                sub_df = sub_df[required]
+
+        sub_df = sub_df[required].dropna()
         if sub_df.empty:
             print("[!] Warning: sub_df is empty after dropna.")
             return pd.DataFrame(), None
@@ -46,7 +64,14 @@ class MacroAnalyzer:
 
     def test_central_bank_momentum_shift(self, window=252):
         print("\n--- [Analysis 2] Central Bank Buying Momentum Test ---")
-        gold_col = 'Gold_Futures' if 'Gold_Futures' in self.df.columns else self.df.columns[0]
+        gold_col = None
+        for c in self.df.columns:
+            if 'GOLD' in c.upper() or 'GC=F' in c.upper():
+                gold_col = c
+                break
+        if gold_col is None:
+            gold_col = self.df.select_dtypes(include=[np.number]).columns[0]
+
         self.df['Gold_Mom'] = self.df[gold_col].diff(window)
         
         recent_momentum = self.df['Gold_Mom'].iloc[-1]
