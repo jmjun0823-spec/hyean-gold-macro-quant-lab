@@ -28,7 +28,7 @@ jobs:
         run: |
           python main.py
         env:
-          PYTHONPATH: .   # <-- 이 부분을 추가하여 모듈 경로 문제 해결
+          PYTHONPATH: ${{ github.workspace }}  # <-- 절대 경로로 모듈 검색 경로 지정
 
       - name: Upload Analysis Logs / Results
         uses: actions/upload-artifact@v4
