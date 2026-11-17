@@ -27,9 +27,11 @@ jobs:
       - name: Execute Quantitative Analysis Pipeline
         run: |
           python main.py
+        env:
+          PYTHONPATH: .   # <-- 이 부분을 추가하여 모듈 경로 문제 해결
 
       - name: Upload Analysis Logs / Results
-        uses: actions/upload-artifact@v4   # v3에서 v4로 업그레이드
+        uses: actions/upload-artifact@v4
         with:
           name: analysis-results
           path: |
