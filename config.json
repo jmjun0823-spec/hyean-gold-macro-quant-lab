@@ -1,0 +1,17 @@
+{
+  "project_name": "macro-quant-analyzer",
+  "blog_name": "혜안",
+  "analysis_settings": {
+    "start_date": "2011-01-01",
+    "end_date": null,
+    "rsi_oversold_threshold": 30.0,
+    "rolling_window_days": 252,
+    "var_confidence_level": 0.95
+  },
+  "tickers": {
+    "gold_futures": "GC=F",
+    "gold_etf": "GLD",
+    "dxy": "DX-Y.NYB",
+    "real_yield": "DFII10"
+  }
+}
