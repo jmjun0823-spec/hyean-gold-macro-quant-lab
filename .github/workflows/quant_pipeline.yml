@@ -1,14 +1,16 @@
-name: Macro-Quant Automated Pipeline
+name: CI - Quant Semantics & Edge Case Tests
 
 on:
-  schedule:
-    - cron: '0 8 * * 1'  # 매주 월요일 오전 8시(UTC 기준) 자동 실행
-  workflow_dispatch:       # 수동 실행 지원
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+  workflow_dispatch:
 
 jobs:
-  run-pipeline:
+  unit-tests:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -24,8 +26,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Execute Quantitative Analysis Pipeline
+      - name: Run deterministic unit tests
         run: |
-          python main.py
+          python -m unittest discover -s tests -p "test_*.py" -v
         env:
           PYTHONPATH: ${{ github.workspace }}
